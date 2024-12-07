@@ -3,7 +3,7 @@ import logging
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, abort
 from .models import db, Post, User, Comment
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import current_user, login_required, login_user
+from flask_login import current_user, login_required, login_user, logout_user
 
 bp = Blueprint('main', __name__)
 logging.basicConfig(level=logging.ERROR)
@@ -115,6 +115,15 @@ def login():
             'redirect_url': redirect_url  # Return the redirect URL
         }), 200
 
+    except Exception as e:
+        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
+
+@bp.route('/logout', methods=['POST'])
+@login_required
+def logout():
+    try:
+        logout_user()
+        return jsonify({'message': 'Logout successful'}), 200
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
