@@ -1,0 +1,29 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f8f9fa;
+}
+
+h1 {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+#message-box {
+    font-size: 1rem;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    display: none;
+}
+
+#message-box.success {
+    background-color: #28a745;
+}
+
+#message-box.error {
+    background-color: #dc3545;
+}
+
+.table {
+    margin-top: 20px;
+}
