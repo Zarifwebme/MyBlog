@@ -5,6 +5,8 @@ from config import Config
 from .extensions import db, migrate, login_manager
 from .models import User
 from app.commands import register_commands
+from .routes import create_super_admin
+
 
 def create_app():
     app = Flask(__name__)
@@ -38,6 +40,8 @@ def create_app():
     app.register_blueprint(routes.bp)
 
     with app.app_context():
+        create_super_admin()
         db.create_all()
+
 
     return app
