@@ -4,6 +4,8 @@ from flask import Blueprint, request, jsonify, render_template, redirect, url_fo
 from .models import db, Post, User, Comment
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import current_user, login_required, login_user, logout_user
+from flask_mail import Message
+from .extensions import mail
 
 bp = Blueprint('main', __name__)
 logging.basicConfig(level=logging.ERROR)
@@ -49,16 +51,24 @@ def admin_panel():
 def test():
     return render_template('test.html')
 
+@bp.route('/register')
+def regs():
+    return render_template('register.html')
+
 @bp.route('/user_register', methods=['POST'])
 def register():
     try:
         data = request.get_json()
-        if not data or not data.get('username') or not data.get('email') or not data.get('password'):
+        if not data or not data.get('username') or not data.get('email') or not data.get('password') or not data.get('confirm_password'):
             return jsonify({'error': 'Missing required fields'}), 400
 
         username = data['username']
         email = data['email']
         password = data['password']
+        confirm_password = data['confirm_password']
+
+        if password != confirm_password:
+            return jsonify({'error': 'Passwords do not match'}), 400
 
         if User.query.filter_by(username=username).first() or User.query.filter_by(email=email).first():
             return jsonify({'error': 'User already exists'}), 400
@@ -68,16 +78,16 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
+        # Send the welcome email
+        msg = Message("Welcome to Our Platform!", sender="your_email@example.com", recipients=[email])
+        msg.body = f"Hi {username},\n\nThank you for registering on our platform! We are excited to have you on board.\n\nBest regards,\nYour Team"
+        mail.send(msg)
+
         return jsonify({'message': 'User registered successfully'}), 201
 
     except KeyError as e:
-        logger.error(f'Missing key in request data: {e}')
         return jsonify({'error': f'Missing key: {str(e)}'}), 400
-    except ValueError as e:
-        logger.error(f'Value error: {e}')
-        return jsonify({'error': f'Invalid value: {str(e)}'}), 400
     except Exception as e:
-        logger.error(f'Unexpected error: {e}')
         return jsonify({'error': 'An error occurred while processing your request. Please try again.'}), 500
 
 @bp.route('/login', methods=['POST'])
@@ -160,16 +170,30 @@ def create_admin():
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
+
 @bp.route('/get_admins', methods=['GET'])
 @login_required
 def get_admins():
-    if not current_user.is_super_admin:
-        return jsonify({'error': 'Access denied. Only Super Admins can view Admin accounts.'}), 403
+    try:
+        # Ensure only Super Admins can view admin accounts
+        if not current_user.is_super_admin:
+            return jsonify({'error': 'Access denied. Only Super Admins can view Admin accounts.'}), 403
 
-    admins = User.query.filter_by(is_admin=True).all()
-    admin_list = [{'username': admin.username, 'email': admin.email} for admin in admins]
-    return jsonify(admin_list), 200
+        # Fetch all admins where `is_admin=True` and `is_super_admin=False`
+        admins = User.query.filter_by(is_admin=True, is_super_admin=False).all()
 
+        # Serialize the list of admins
+        admin_list = [
+            {
+                'username': admin.username,
+                'email': admin.email
+            } for admin in admins
+        ]
+
+        return jsonify(admin_list), 200
+
+    except Exception as e:
+        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
 
 @bp.route('/delete_admin', methods=['DELETE'])
