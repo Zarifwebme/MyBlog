@@ -17,29 +17,6 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'bmp', 'ico', 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def create_super_admin():
-    try:
-        # Define super admin credentials
-        super_admin_username = 'Zarif_Baxtiyorov'
-        super_admin_email = 'baxtiyorovzarif@gmail.com'
-        super_admin_password = 'Jizzax20021210!'
-
-        # Check if the super admin already exists
-        if User.query.filter_by(username=super_admin_username).first() or User.query.filter_by(email=super_admin_email).first():
-            logger.info('Super admin already exists.')
-            return
-
-        # Create the super admin
-        hashed_password = generate_password_hash(super_admin_password, method='pbkdf2:sha256')
-        super_admin = User(username=super_admin_username, email=super_admin_email, password=hashed_password, is_admin=True, is_super_admin=True)
-
-        db.session.add(super_admin)
-        db.session.commit()
-        logger.info('Super admin created successfully.')
-
-    except Exception as e:
-        logger.error(f'Error creating super admin: {e}')
-
 @bp.route('/admin_panel', methods=['GET'])
 @login_required
 def admin_panel():
@@ -79,7 +56,7 @@ def register():
         db.session.commit()
 
         # Send the welcome email
-        msg = Message("Welcome to Our Platform!", sender="your_email@example.com", recipients=[email])
+        msg = Message("Welcome to Our Platform!", sender="baxtiyorovzarif@gmail.com", recipients=[email])
         msg.body = f"Hi {username},\n\nThank you for registering on our platform! We are excited to have you on board.\n\nBest regards,\nYour Team"
         mail.send(msg)
 
@@ -114,10 +91,10 @@ def login():
         redirect_url = url_for('main.profile')
         if user.is_admin:
             role = "admin"
-            redirect_url = url_for('main.admin_dashboard')
+            redirect_url = url_for('main.admin_panel')
         if user.is_super_admin:
             role = "super_admin"
-            redirect_url = url_for('main.super_admin_panel')
+            redirect_url = url_for('main.admin_panel')
 
         return jsonify({
             'message': 'Login successful',
@@ -225,20 +202,6 @@ def delete_admin():
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
-@bp.route('/admin_dashboard', methods=['GET'])
-@login_required
-def admin_dashboard():
-    if not current_user.is_admin:
-        abort(403)  # Restrict access to Admins and Super Admins
-    return jsonify({'message': 'Welcome to the Admin Dashboard'}), 200
-
-@bp.route('/super_admin_panel', methods=['GET'])
-@login_required
-def super_admin_panel():
-    if not current_user.is_super_admin:
-        abort(403)  # Restrict access to Super Admins only
-    return jsonify({'message': 'Welcome to the Super Admin Panel'}), 200
-
 @bp.route('/profile', methods=['GET'])
 @login_required
 def profile():
@@ -250,3 +213,7 @@ def create_admin_form():
     if not current_user.is_super_admin:
         return "Access Denied. Only Super Admins can access this page.", 403
     return render_template('create_admin.html')
+
+@bp.route('/password_recovery')
+def password_recovery():
+    return render_template('password_recovery.html')

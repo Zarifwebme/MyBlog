@@ -4,8 +4,7 @@ from flask_swagger_ui import get_swaggerui_blueprint
 from config import Config
 from .extensions import db, migrate, login_manager, mail
 from .models import User
-from app.commands import register_commands
-from .routes import create_super_admin
+from .commands import create_super_admin
 
 def create_app():
     app = Flask(__name__)
@@ -45,7 +44,6 @@ def create_app():
         return User.query.get(int(user_id))
 
     # Register commands and routes
-    register_commands(app)
     from . import routes
     app.register_blueprint(routes.bp)
 

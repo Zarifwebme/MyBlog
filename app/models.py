@@ -20,6 +20,8 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
+    picture = db.Column(db.LargeBinary, nullable=True)
+    mimetype = db.Column(db.String(50), nullable=True)
     password = db.Column(db.String(200), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)  # Admin yoki oddiy foydalanuvchi
     is_super_admin = db.Column(db.Boolean, default=False)  # True for super admin
