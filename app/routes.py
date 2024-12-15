@@ -114,6 +114,62 @@ def logout():
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
+@bp.route('/get_all_users', methods=['GET'])
+@login_required
+def get_all_users():
+    try:
+        # Ensure only admins or super admins can view all users
+        if not current_user.is_admin and not current_user.is_super_admin:
+            return jsonify({'error': 'Access denied. Only Admins and Super Admins can view all users.'}), 403
+
+        # Fetch all users
+        users = User.query.all()
+
+        # Serialize the list of users
+        user_list = [
+            {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'is_admin': user.is_admin,
+                'is_super_admin': user.is_super_admin
+            } for user in users
+        ]
+
+        return jsonify(user_list), 200
+
+    except Exception as e:
+        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
+
+@bp.route('/delete_user', methods=['DELETE'])
+@login_required
+def delete_user():
+    try:
+        data = request.get_json()
+
+        if not data or not data.get('id'):
+            return jsonify({'error': 'Missing required fields'}), 400
+
+        user_id = data['id']
+
+        # Ensure only admins or super admins can delete users
+        if not current_user.is_admin and not current_user.is_super_admin:
+            return jsonify({'error': 'Access denied. Only Admins and Super Admins can delete users.'}), 403
+
+        # Find the user by ID
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Delete the user
+        db.session.delete(user)
+        db.session.commit()
+
+        return jsonify({'message': 'User deleted successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
+
 @bp.route('/create_admin', methods=['POST'])
 @login_required
 def create_admin():
@@ -213,6 +269,14 @@ def create_admin_form():
     if not current_user.is_super_admin:
         return "Access Denied. Only Super Admins can access this page.", 403
     return render_template('create_admin.html')
+
+@bp.route('/all_users', methods=['GET'])
+@login_required
+def all_users():
+    if not current_user.is_super_admin:
+        return "Access Denied. Only Super Admins can access this page.", 403
+    return render_template('users.html')
+
 
 @bp.route('/password_recovery')
 def password_recovery():
