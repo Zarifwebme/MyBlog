@@ -81,7 +81,7 @@ def login():
         if user and check_password_hash(user.password, password):
             login_user(user)
             if user.is_admin or user.is_super_admin:
-                return jsonify({'redirect': url_for('main.admin_profile')}), 200
+                return jsonify({'redirect': url_for('main.admin_profile_page')}), 200
             else:
                 return jsonify({'redirect': url_for('main.profile')}), 200
         else:
@@ -253,16 +253,22 @@ def profile():
 @bp.route('/create_admin_form', methods=['GET'])
 @login_required
 def create_admin_form():
-    if not current_user.is_super_admin:
-        return "Access Denied. Only Super Admins can access this page.", 403
-    return render_template('create_admin.html')
+    try:
+        if not current_user.is_super_admin:
+            return "Access Denied. Only Super Admins can access this page.", 403
+        return render_template('create_admin.html')
+    except Exception as e:
+        return f"An unexpected error occurred: {str(e)}", 500
 
 @bp.route('/all_users', methods=['GET'])
 @login_required
 def all_users():
-    if not current_user.is_super_admin:
-        return "Access Denied. Only Super Admins can access this page.", 403
-    return render_template('users.html')
+    try:
+        if not current_user.is_super_admin:
+            return "Access Denied. Only Super Admins can access this page.", 403
+        return render_template('users.html')
+    except Exception as e:
+        return f"An unexpected error occurred: {str(e)}", 500
 
 @bp.route('/api/admin_profile', methods=['GET'])
 @login_required
@@ -294,6 +300,35 @@ def admin_profile_page():
         return render_template('admin_profile.html'), 200
     except Exception as e:
         return f"An unexpected error occurred: {str(e)}", 500
+
+@bp.route('/api/admin_profile/edit', methods=['POST'])
+@login_required
+def edit_admin_profile():
+    try:
+        if not (current_user.is_admin or current_user.is_super_admin):
+            return jsonify({'success': False, 'message': 'Access denied.'}), 403
+
+        data = request.form
+
+        # Update text fields
+        if 'username' in data:
+            current_user.username = data['username']
+        if 'email' in data:
+            current_user.email = data['email']
+        if 'password' in data and data['password']:
+            current_user.password = generate_password_hash(data['password'])  # Hash the new password
+
+        # Handle profile picture
+        if 'picture' in request.files:
+            picture = request.files['picture']
+            if picture.filename != '':
+                current_user.picture = picture.read()
+                current_user.mimetype = picture.mimetype
+
+        db.session.commit()
+        return jsonify({'success': True, 'message': 'Profile updated successfully.'}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'An unexpected error occurred: {str(e)}'}), 500
 
 @bp.route('/password_recovery')
 def password_recovery():
