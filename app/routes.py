@@ -71,36 +71,21 @@ def register():
 def login():
     try:
         data = request.get_json()
-
         if not data or not data.get('email') or not data.get('password'):
-            return jsonify({'error': 'Missing email or password'}), 400
+            return jsonify({'error': 'Missing required fields'}), 400
 
         email = data['email']
         password = data['password']
 
         user = User.query.filter_by(email=email).first()
-        if not user:
-            return jsonify({'error': 'User not found'}), 404
-
-        if not check_password_hash(user.password, password):
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            if user.is_admin or user.is_super_admin:
+                return jsonify({'redirect': url_for('main.admin_profile')}), 200
+            else:
+                return jsonify({'redirect': url_for('main.profile')}), 200
+        else:
             return jsonify({'error': 'Invalid email or password'}), 401
-
-        login_user(user)
-
-        role = "user"
-        redirect_url = url_for('main.profile')
-        if user.is_admin:
-            role = "admin"
-            redirect_url = url_for('main.admin_panel')
-        if user.is_super_admin:
-            role = "super_admin"
-            redirect_url = url_for('main.admin_panel')
-
-        return jsonify({
-            'message': 'Login successful',
-            'role': role,
-            'redirect_url': redirect_url  # Return the redirect URL
-        }), 200
 
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
@@ -123,7 +108,7 @@ def get_all_users():
             return jsonify({'error': 'Access denied. Only Admins and Super Admins can view all users.'}), 403
 
         # Fetch all users
-        users = User.query.all()
+        users = User.query.filter_by(is_admin=False, is_super_admin=False).all()
 
         # Serialize the list of users
         user_list = [
@@ -168,7 +153,9 @@ def delete_user():
         return jsonify({'message': 'User deleted successfully'}), 200
 
     except Exception as e:
-        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
+        # Log the error for debugging
+        bp.logger.error(f"Error deleting user: {str(e)}")
+        return jsonify({'error': 'An unexpected error occurred'}), 500
 
 @bp.route('/create_admin', methods=['POST'])
 @login_required
@@ -277,6 +264,36 @@ def all_users():
         return "Access Denied. Only Super Admins can access this page.", 403
     return render_template('users.html')
 
+@bp.route('/api/admin_profile', methods=['GET'])
+@login_required
+def admin_profile_api():
+    try:
+        if not current_user.is_admin and not current_user.is_super_admin:
+            return jsonify({'error': 'Access Denied. Only Admins and Super Admins can access this page.'}), 403
+
+        user_data = {
+            'username': current_user.username,
+            'email': current_user.email,
+            'is_admin': current_user.is_admin,
+            'is_super_admin': current_user.is_super_admin,
+            'picture': base64.b64encode(current_user.picture).decode('utf-8') if current_user.picture else None,
+            'mimetype': current_user.mimetype
+        }
+        return jsonify(user_data), 200
+    except Exception as e:
+        return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
+
+
+@bp.route('/admin_profile', methods=['GET'])
+@login_required
+def admin_profile_page():
+    try:
+        if not current_user.is_admin and not current_user.is_super_admin:
+            return "Access Denied. Only Admins and Super Admins can access this page.", 403
+
+        return render_template('admin_profile.html'), 200
+    except Exception as e:
+        return f"An unexpected error occurred: {str(e)}", 500
 
 @bp.route('/password_recovery')
 def password_recovery():

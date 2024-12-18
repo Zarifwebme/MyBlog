@@ -26,17 +26,23 @@ function loadUsers() {
 }
 
 function deleteUser(userId) {
-    if (confirm('Are you sure you want to delete this user?')) {
-        fetch(`/delete_user/${userId}`, {
-            method: 'DELETE'
-        })
-        .then(response => {
-            if (response.ok) {
-                loadUsers();
-            } else {
-                alert('Failed to delete user.');
-            }
-        })
-        .catch(error => console.error('Error deleting user:', error));
+        if (confirm('Are you sure you want to delete this user?')) {
+            fetch(`/delete_user`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: userId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (response.ok) {
+                    alert(data.message || 'User deleted successfully');
+                    loadUsers();
+                } else {
+                    alert(data.error || 'Failed to delete user.');
+                }
+            })
+            .catch(error => console.error('Error deleting user:', error));
+        }
     }
-}

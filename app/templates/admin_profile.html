@@ -1,0 +1,46 @@
+<!-- In `admin_profile.html` -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Profile</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Admin Profile</h3>
+            </div>
+            <div class="card-body text-center" id="profile-info">
+                <!-- Profile information will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/admin_profile')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const profileInfo = document.getElementById('profile-info');
+                    profileInfo.innerHTML = `
+                        <img src="data:${data.mimetype};base64,${data.picture}" alt="Profile Picture" class="img-thumbnail mb-3" style="width: 150px; height: 150px;">
+                        <h4>${data.username}</h4>
+                        <p>${data.email}</p>
+                        <p>Admin: ${data.is_admin}</p>
+                        <p>Super Admin: ${data.is_super_admin}</p>
+                    `;
+                })
+                .catch(error => console.error('Error fetching profile information:', error));
+        });
+    </script>
+</body>
+</html>

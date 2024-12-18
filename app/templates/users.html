@@ -8,6 +8,34 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="#">Admin Panel</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin_profile">Admin profile</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin_panel">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">Post</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('main.all_users')}}">Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{url_for('main.create_admin_form')}}">Admins</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="#">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
     <div class="container mt-5">
         <div class="card shadow-sm">
             <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
