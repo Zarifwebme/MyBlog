@@ -6,7 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch admins and display them
     const fetchAdmins = async () => {
         try {
-            const response = await fetch('/get_admins');
+            const response = await fetch('/admin/get_admins');
+            if (!response.ok) throw new Error('Failed to fetch admins.');
             const admins = await response.json();
 
             // Clear the table
@@ -32,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             });
         } catch (error) {
-            console.error('Failed to fetch admins:', error);
+            console.error('Error:', error);
         }
     };
 
@@ -45,33 +46,32 @@ document.addEventListener('DOMContentLoaded', () => {
         const password = document.getElementById('password').value.trim();
 
         try {
-            const response = await fetch('/create_admin', {
+            const response = await fetch('/admin/create_admin', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, email, password })
             });
 
             const result = await response.json();
+            messageBox.style.display = 'block';
             if (response.ok) {
-                messageBox.className = 'success';
+                messageBox.className = 'alert alert-success';
                 messageBox.textContent = result.message;
                 fetchAdmins();
             } else {
-                messageBox.className = 'error';
+                messageBox.className = 'alert alert-danger';
                 messageBox.textContent = result.error;
             }
-            messageBox.style.display = 'block';
         } catch (error) {
-            messageBox.className = 'error';
+            messageBox.className = 'alert alert-danger';
             messageBox.textContent = `Unexpected error: ${error.message}`;
-            messageBox.style.display = 'block';
         }
     });
 
     // Delete admin
     const deleteAdmin = async (username) => {
         try {
-            const response = await fetch('/delete_admin', {
+            const response = await fetch('/admin/delete_user_only_super_admin', {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username })

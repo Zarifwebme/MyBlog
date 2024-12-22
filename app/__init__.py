@@ -5,13 +5,16 @@ from config import Config
 from .extensions import db, migrate, login_manager, mail
 from .models import User
 from .commands import create_super_admin
+from .routes.admin_routes import admin_bp
+from .routes.auth_routes import auth_bp
+from .routes.user_routes import user_bp
 
 def create_app():
     app = Flask(__name__)
     CORS(app)
     app.debug = True
 
-    # Load configurations from a separate Config class or environment variables
+    # Load configurations from Config
     app.config.from_object(Config)
 
     # Mail configuration
@@ -21,6 +24,11 @@ def create_app():
     app.config['MAIL_USERNAME'] = 'baxtiyorovzarif@gmail.com'  # Replace with your email
     app.config['MAIL_PASSWORD'] = 'lrtoborfekauiypm'  # Replace with your email password
     app.config['MAIL_DEFAULT_SENDER'] = 'baxtiyorovzarif@gmail.com'
+
+    # Register blueprints
+    app.register_blueprint(auth_bp, url_prefix='/auth')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(user_bp, url_prefix='/user')
 
     # Initialize Flask extensions
     db.init_app(app)
@@ -43,13 +51,8 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # Register commands and routes
-    from . import routes
-    app.register_blueprint(routes.bp)
-
-    # Create super admin on first app context
+    # Create super admin
     with app.app_context():
         create_super_admin()
-        db.create_all()
 
     return app

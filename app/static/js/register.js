@@ -10,7 +10,7 @@ document.getElementById('registrationForm').addEventListener('submit', async (e)
     messageDiv.textContent = ''; // Clear any previous messages
 
     try {
-        const response = await fetch('/user_register', {
+        const response = await fetch('/auth/user_register', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

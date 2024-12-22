@@ -3,7 +3,7 @@ document.getElementById('password-recovery-form').addEventListener('submit', asy
     const email = document.getElementById('email').value;
 
     try {
-        const response = await fetch('/password_recovery', {
+        const response = await fetch('/auth/password_recovery', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: email }),

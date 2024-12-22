@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadUsers() {
-    fetch('/get_all_users')
+    fetch('/admin/get_all_users_for_admin_panel')
         .then(response => response.json())
         .then(data => {
             const usersTable = document.getElementById('usersTable').getElementsByTagName('tbody')[0];
@@ -27,7 +27,7 @@ function loadUsers() {
 
 function deleteUser(userId) {
         if (confirm('Are you sure you want to delete this user?')) {
-            fetch(`/delete_user`, {
+            fetch('/admin/delete_user_only_super_admin', {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'

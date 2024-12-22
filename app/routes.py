@@ -99,9 +99,9 @@ def logout():
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
-@bp.route('/get_all_users', methods=['GET'])
+@bp.route('/get_all_users_for_admin_panel', methods=['GET'])
 @login_required
-def get_all_users():
+def get_all_users_for_admin_panel():
     try:
         # Ensure only admins or super admins can view all users
         if not current_user.is_admin and not current_user.is_super_admin:
@@ -126,9 +126,9 @@ def get_all_users():
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
-@bp.route('/delete_user', methods=['DELETE'])
+@bp.route('/delete_user_only_super_admin', methods=['DELETE'])
 @login_required
-def delete_user():
+def delete_user_only_super_admin():
     try:
         data = request.get_json()
 
@@ -190,7 +190,6 @@ def create_admin():
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
 
-
 @bp.route('/get_admins', methods=['GET'])
 @login_required
 def get_admins():
@@ -214,7 +213,6 @@ def get_admins():
 
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
-
 
 @bp.route('/delete_admin', methods=['DELETE'])
 @login_required
@@ -288,7 +286,6 @@ def admin_profile_api():
         return jsonify(user_data), 200
     except Exception as e:
         return jsonify({'error': f'An unexpected error occurred: {str(e)}'}), 500
-
 
 @bp.route('/admin_profile', methods=['GET'])
 @login_required
